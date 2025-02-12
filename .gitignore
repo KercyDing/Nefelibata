@@ -1,0 +1,45 @@
+# macOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.tmp
+~$*
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Configuration files
+*.ini
+*.key
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environment
+venv/
+env/
+.env/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local development settings
+.env
+.env.local
+
+# Logs
+*.log
+
+# Database
+*.sqlite3
+*.db
