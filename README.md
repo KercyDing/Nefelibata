@@ -10,6 +10,7 @@ Nefelibata 是一个基于 Python 和 PyQt6 开发的智能聊天应用程序，
 - 聊天历史记录管理
 - 多模型切换支持
 - 消息复制和删除功能
+<img width="1192" alt="截屏2025-02-14 21 02 34" src="https://github.com/user-attachments/assets/a8d5740d-8dcd-4164-b837-e91589ecc65b" />
 
 ## 环境要求
 
