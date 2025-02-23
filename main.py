@@ -128,6 +128,8 @@ class ModelSelectionDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("选择模型")
         self.parent = parent
+        self.setFixedSize(400, 500)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowMaximizeButtonHint)
         self.setup_ui()
 
     def setup_ui(self):
@@ -224,6 +226,22 @@ class ModelSelectionDialog(QDialog):
             if button.isChecked():
                 return model
         return None
+
+class CustomTextEdit(QTextEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.parent = parent
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Return:
+            if event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
+                # Shift+Enter 换行
+                super().keyPressEvent(event)
+            else:
+                # Enter 发送消息
+                self.parent.send_message()
+        else:
+            super().keyPressEvent(event)
 
 class ChatWindow(QWidget):
     def __init__(self):
@@ -406,8 +424,8 @@ class ChatWindow(QWidget):
 
         # 输入区域
         input_layout = QHBoxLayout()
-        self.input_box = QTextEdit()
-        self.input_box.setPlaceholderText("请输入消息(enter换行)")
+        self.input_box = CustomTextEdit(self)
+        self.input_box.setPlaceholderText("请输入消息(enter发送，shift+enter换行)")
         self.input_box.setStyleSheet("""
             QTextEdit {
                 background-color: white;
