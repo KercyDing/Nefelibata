@@ -474,21 +474,18 @@ class ChatWindow(QWidget):
             print(f"发送/停止图标加载失败: {e}")
         self.send_button.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: transparent;
                 border: none;
                 border-radius: 30px;
             }
             QPushButton:hover {
-                background-color: #45a049;
-            }
-            QPushButton:pressed {
-                background-color: #3d8b40;
+                background-color: rgba(0, 0, 0, 0.1);
             }
             QPushButton[waiting="true"] {
-                background-color: #ff4444;
+                background-color: #F58282;
             }
             QPushButton[waiting="true"]:hover {
-                background-color: #ff0000;
+                background-color: #FC5454;
             }
         """)
         self.send_button.clicked.connect(self.send_message)
@@ -588,11 +585,11 @@ class ChatWindow(QWidget):
         self.glm_api_key_input.setFixedHeight(50)
         layout.addWidget(self.glm_api_key_input)
 
-        # 创建DeepSeek API Key输入框
-        deepseek_label = QLabel("DeepSeek API Key:")
+        # 创建SiliconFlow API Key输入框
+        deepseek_label = QLabel("SiliconFlow API Key:")
         layout.addWidget(deepseek_label)
         self.deepseek_api_key_input = QTextEdit()
-        self.deepseek_api_key_input.setPlaceholderText("请输入DeepSeek API Key...")
+        self.deepseek_api_key_input.setPlaceholderText("请输入SiliconFlow API Key...")
         self.deepseek_api_key_input.setStyleSheet("""
             QTextEdit {
                 border: 2px solid #e0e7f0;
