@@ -4,6 +4,7 @@ AI服务提供商客户端
 """
 import zhipuai
 import requests
+import json
 from typing import List, Dict, Any, Optional
 from abc import ABC, abstractmethod
 
@@ -36,10 +37,13 @@ class ZhipuAIProvider(AIProvider):
                 stream=stream
             )
             
-            if not response.choices:
-                raise KeyError("API响应中未找到有效回复内容")
-            
-            return response.choices[0].message.content
+            if stream:
+                return response  # 返回流式响应对象
+            else:
+                if not response.choices:
+                    raise KeyError("API响应中未找到有效回复内容")
+                return response.choices[0].message.content
+                
         except Exception as e:
             error_msg = f"GLM API请求错误: {str(e)}"
             if hasattr(e, 'response') and e.response is not None:
@@ -61,7 +65,8 @@ class SiliconFlowProvider(AIProvider):
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
-        }    
+        }      
+        
     def chat(self, messages: List[Dict[str, str]], model: str = "deepseek-ai/DeepSeek-V3", stream: bool = False) -> str:
         """发送SiliconFlow聊天请求"""
         try:
@@ -82,7 +87,7 @@ class SiliconFlowProvider(AIProvider):
                 "messages": full_messages
             }
             
-            response = requests.post(self.url, json=payload, headers=self.headers)
+            response = requests.post(self.url, json=payload, headers=self.headers, stream=stream)
             
             if response.status_code == 403:
                 error_msg = "API认证失败(403 Forbidden)。可能的原因：\n"
@@ -92,12 +97,14 @@ class SiliconFlowProvider(AIProvider):
                 raise Exception(error_msg)
             
             response.raise_for_status()
-            response_json = response.json()
             
-            if "choices" not in response_json or not response_json["choices"]:
-                raise KeyError("API响应中未找到有效的回复内容")
-            
-            return response_json["choices"][0]["message"]["content"]
+            if stream:
+                return response  # 返回流式响应对象
+            else:
+                response_json = response.json()
+                if "choices" not in response_json or not response_json["choices"]:
+                    raise KeyError("API响应中未找到有效的回复内容")
+                return response_json["choices"][0]["message"]["content"]
             
         except requests.exceptions.RequestException as e:
             error_msg = ""

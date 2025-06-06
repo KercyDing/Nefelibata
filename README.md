@@ -80,8 +80,11 @@ python main.py
 
 当前版本：v1.0.0
 
+## 创作团队
+[KercyDing](https://github.com/KercyDing) 和 [wsh051123](https://github.com/wsh051123)
+
 ## 联系方式
 
 如有问题或建议，请通过以下方式联系：
 - 提交 Issue
-- 发送邮件至：[dkx215417@gmail.com]
+- 发送邮件至：[dkx215417@gmail.com] 和 [1758407550@qq.com]

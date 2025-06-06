@@ -14,7 +14,7 @@ from PyQt6.QtSvg import QSvgRenderer
 
 from utils.resources import resource_path, get_config_paths, get_icon_path
 from core.config_manager import ConfigManager
-from core.ai_client import AIChatThread
+from core.ai_client import AIChatThread, AIStreamThread
 from .styles import StyleManager
 from .widgets import CustomTextEdit, MessageWidget, ToastWidget
 from .dialogs import APIKeyDialog, ModelSelectionDialog, ConfirmDialog
@@ -33,13 +33,16 @@ class ChatWindow(QWidget):
         
         # 初始化数据库
         self.db = ChatDatabase()
-        
-        # 初始化状态
+          # 初始化状态
         self.ai_thread = None
         self.typing_animation = None
         self.timer = QTimer(self)
         self.dot_count = 0
         self.timer.timeout.connect(self.update_dot_animation)
+        
+        # 流式输出相关状态
+        self.current_ai_message_widget = None  # 当前AI消息组件引用
+        self.full_ai_response = ""  # 存储完整的AI响应文本
         
         # 获取当前模型和会话
         self.current_model = self.config_manager.get_current_model()
@@ -357,18 +360,64 @@ class ChatWindow(QWidget):
             self.input_box.clear()  # 清空输入框
             self.input_box.setFocus()  # 恢复输入框焦点
             
-        self.send_button.setStyleSheet(self.send_button.styleSheet())
-
+        self.send_button.setStyleSheet(self.send_button.styleSheet())    
+        
     def get_ai_response(self, text: str):
-        """获取AI响应"""
+        """获取AI响应（使用流式输出）"""
         api_key = self.config_manager.get_api_key_for_model(self.current_model)
         history_messages = self.db.get_conversation_history(self.conversation_id)
 
-        # 创建并启动AI线程
-        self.ai_thread = AIChatThread(text, api_key, history_messages, self.current_model)
-        self.ai_thread.response_received.connect(self.handle_ai_response)
+        # 重置流式输出状态
+        self.current_ai_message_widget = None
+        self.full_ai_response = ""
+
+        # 创建并启动AI流式线程
+        self.ai_thread = AIStreamThread(text, api_key, history_messages, self.current_model)
+        self.ai_thread.chunk_received.connect(self.handle_ai_chunk)
+        self.ai_thread.stream_finished.connect(self.handle_ai_stream_finished)
         self.ai_thread.error_occurred.connect(self.handle_error)
-        self.ai_thread.start()    
+        self.ai_thread.start()
+    def handle_ai_chunk(self, chunk: str):
+        """处理AI流式响应片段"""
+        self.full_ai_response += chunk
+        
+        if self.current_ai_message_widget is None:
+            # 创建新的AI消息组件
+            self.current_ai_message_widget = MessageWidget("", align_right=False, parent=self)
+            self.message_layout.insertWidget(self.message_layout.count() - 1, self.current_ai_message_widget)
+            # 立即滚动到新消息
+            QTimer.singleShot(10, self.scroll_to_bottom)
+        
+        # 更新消息内容
+        self.current_ai_message_widget.update_content(self.full_ai_response)
+        
+        # 确保滚动到底部，但使用更短的延迟
+        QTimer.singleShot(20, self.scroll_to_bottom)
+    
+    def handle_ai_stream_finished(self, full_text: str):
+        """处理AI流式响应完成"""
+        self.timer.stop()
+        self._set_waiting_state(False)
+        
+        # 清理AI响应文本
+        cleaned_text = full_text.strip()
+        
+        # 保存AI响应到数据库
+        conn = sqlite3.connect(self.db.db_path)
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO messages (content, sender, conversation_id) VALUES (?, ?, ?)',
+                      (cleaned_text, "ai", self.conversation_id))
+        message_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        
+        # 更新消息组件的message_id
+        if self.current_ai_message_widget:
+            self.current_ai_message_widget.message_id = message_id
+        
+        # 重置状态
+        self.current_ai_message_widget = None
+        self.full_ai_response = ""
     def handle_ai_response(self, text: str):
         """处理AI响应"""
         self.timer.stop()
