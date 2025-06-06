@@ -17,6 +17,7 @@ from core.config_manager import ConfigManager
 from core.ai_client import AIChatThread, AIStreamThread
 from .styles import StyleManager
 from .widgets import CustomTextEdit, MessageWidget, ToastWidget
+from .bubble_message_widget import BubbleMessageWidget
 from .dialogs import APIKeyDialog, ModelSelectionDialog, ConfirmDialog
 from chat_db import ChatDatabase
 
@@ -281,13 +282,13 @@ class ChatWindow(QWidget):
                 # 更新当前状态
                 self.current_model = selected_model
                 self._update_ui_state()
-                
-                # 更新模型标签
+                  # 更新模型标签
                 self._update_model_label()
-
+    
     def add_message(self, content: str, align_right: bool = False, message_id: int = None):
         """添加消息到界面"""
-        message_widget = MessageWidget(content, align_right, message_id, self)
+        # 使用新的气泡消息组件
+        message_widget = BubbleMessageWidget(content, align_right, message_id, self)
         self.message_layout.insertWidget(self.message_layout.count() - 1, message_widget)
         
         # 延迟滚动到底部
@@ -376,14 +377,15 @@ class ChatWindow(QWidget):
         self.ai_thread.chunk_received.connect(self.handle_ai_chunk)
         self.ai_thread.stream_finished.connect(self.handle_ai_stream_finished)
         self.ai_thread.error_occurred.connect(self.handle_error)
-        self.ai_thread.start()
+        self.ai_thread.start()    
+        
     def handle_ai_chunk(self, chunk: str):
         """处理AI流式响应片段"""
         self.full_ai_response += chunk
         
         if self.current_ai_message_widget is None:
             # 创建新的AI消息组件
-            self.current_ai_message_widget = MessageWidget("", align_right=False, parent=self)
+            self.current_ai_message_widget = BubbleMessageWidget("", align_right=False, parent=self)
             self.message_layout.insertWidget(self.message_layout.count() - 1, self.current_ai_message_widget)
             # 立即滚动到新消息
             QTimer.singleShot(10, self.scroll_to_bottom)
