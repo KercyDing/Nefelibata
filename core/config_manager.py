@@ -72,14 +72,16 @@ class ConfigManager:
         
         encrypted_model = self.crypto_manager.encrypt_model_config(model)
         self.model_config['MODEL_CONFIG']['model'] = encrypted_model
-        self._save_model_config()    
+        self._save_model_config()
+
     def get_api_key_for_model(self, model: str) -> str:
         """根据模型获取对应的API密钥"""
         if model.startswith("deepseek-ai") or model.startswith("Qwen/"):
+            # SiliconFlow 提供商支持的模型
             return self.get_api_key("deepseek")
         else:
+            # 智谱AI 提供商支持的模型
             return self.get_api_key("glm")
-    
     def validate_api_key(self, api_key: str, model_type: str) -> bool:
         """验证API密钥格式"""
         if not api_key:  # 允许清空API密钥
@@ -89,7 +91,7 @@ class ConfigManager:
             # GLM API密钥格式验证
             return bool(re.match(r'^[a-zA-Z0-9]{32}\.[a-zA-Z0-9]{16}$', api_key))
         elif model_type == "deepseek-ai":
-            # DeepSeek API密钥格式验证
+            # SiliconFlow API密钥格式验证（通常以sk-开头）
             return bool(re.match(r'^sk-[a-zA-Z0-9]{48}$', api_key))
         return False
     

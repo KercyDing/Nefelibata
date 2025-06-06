@@ -9,7 +9,7 @@ from .ai_providers import (
     SiliconFlowProvider, 
     AIProviderFactory,
     ZhipuAI,  # 兼容性别名
-    DeepSeekAI  # 兼容性别名
+    SiliconFlowAI  # 兼容性别名
 )
 
 __all__ = [
@@ -18,5 +18,5 @@ __all__ = [
     'SiliconFlowProvider', 
     'AIProviderFactory',
     'ZhipuAI',
-    'DeepSeekAI'
+    'SiliconFlowAI'
 ]

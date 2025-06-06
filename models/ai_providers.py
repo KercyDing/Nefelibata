@@ -25,9 +25,9 @@ class ZhipuAIProvider(AIProvider):
     
     def __init__(self, api_key: str):
         super().__init__(api_key)
-        self.client = zhipuai.ZhipuAI(api_key=api_key)
-
-    def chat(self, messages: List[Dict[str, str]], model: str = "glm-4-flash", stream: bool = False) -> str:
+        self.client = zhipuai.ZhipuAI(api_key=api_key)    
+        
+    def chat(self, messages: List[Dict[str, str]], model: str = "glm-z1-flash", stream: bool = False) -> str:
         """发送GLM聊天请求"""
         try:
             response = self.client.chat.completions.create(
@@ -125,7 +125,7 @@ class SiliconFlowProvider(AIProvider):
 
 
 class AIProviderFactory:
-    """AI服务提供商工厂"""    
+    """AI服务提供商工厂"""      
     @staticmethod
     def create_provider(model: str, api_key: str) -> AIProvider:
         """根据模型名称创建相应的服务提供商"""
@@ -133,16 +133,18 @@ class AIProviderFactory:
             return SiliconFlowProvider(api_key)
         else:
             return ZhipuAIProvider(api_key)
+    
     @staticmethod
     def get_supported_models() -> Dict[str, List[str]]:
         """获取支持的模型列表"""
         return {
             "智谱AI": [
-                "glm-4-flash",
-                "glm-4-flashx",
-                "glm-4-air",
-                "glm-4-plus"            ],
-            "DeepSeek": [
+                "glm-z1-flash",
+                "glm-z1-airx",
+                "glm-z1-air",
+                "glm-4-plus"
+            ],
+            "SiliconFlow": [
                 "deepseek-ai/DeepSeek-V3",
                 "deepseek-ai/DeepSeek-R1",
                 "Qwen/Qwen3-235B-A22B"
@@ -152,4 +154,4 @@ class AIProviderFactory:
 
 # 为了兼容性，保留原有的类名
 ZhipuAI = ZhipuAIProvider
-DeepSeekAI = SiliconFlowProvider
+SiliconFlowAI = SiliconFlowProvider

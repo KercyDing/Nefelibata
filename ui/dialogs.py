@@ -10,54 +10,202 @@ from .styles import StyleManager
 
 
 class ModelSelectionDialog(QDialog):
-    """模型选择对话框"""
-    
+    """模型选择对话框"""    
     def __init__(self, config_manager, parent=None):
         super().__init__(parent)
         self.config_manager = config_manager
         self.setWindowTitle("选择模型")
-        self.setFixedSize(400, 500)
+        self.setFixedSize(400, 580)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowMaximizeButtonHint)
         self.setup_ui()
-
+        
     def setup_ui(self):
-        layout = QVBoxLayout(self)        # 创建模型选项
-        models = [            ("glm-4-flash", "免费"),            ("glm-4-flashx", "高速低价"),
-            ("glm-4-air", "性价比高"),
-            ("glm-4-plus", "旗舰"),
-            ("deepseek-ai/DeepSeek-V3", "快速精准"),
-            ("deepseek-ai/DeepSeek-R1", "最强推理大模型"),
-            ("Qwen/Qwen3-235B-A22B", "通义千问超大模型")
+        layout = QVBoxLayout(self)
+        layout.setSpacing(20)
+        layout.setContentsMargins(20, 20, 20, 20)
+        
+        # GLM模型区域
+        glm_title = QLabel("智谱AI模型")
+        glm_title.setStyleSheet("""
+            QLabel {
+                font-size: 16px;
+                font-weight: bold;
+                color: #333;
+                padding: 5px 0px;
+            }
+        """)
+        layout.addWidget(glm_title)
+        
+        # GLM模型选项
+        glm_models = [
+            ("glm-z1-flash", "免费推理模型"),
+            ("glm-z1-airx", "极速推理模型"), 
+            ("glm-z1-air", "高性价比推理模型"),
+            ("glm-4-plus", "旗舰级别模型")
+        ]
+        
+        # SiliconFlow模型区域
+        sf_title = QLabel("SiliconFlow模型")
+        sf_title.setStyleSheet("""
+            QLabel {
+                font-size: 16px;
+                font-weight: bold;
+                color: #333;
+                padding: 15px 0px 5px 0px;
+            }
+        """)
+        
+        # SiliconFlow模型选项
+        sf_models = [
+            ("deepseek-ai/DeepSeek-V3", "快速精准推理"),
+            ("deepseek-ai/DeepSeek-R1", "深度推理模型"),
+            ("Qwen/Qwen3-235B-A22B", "超大上下文模型")
         ]
 
         self.model_buttons = []
         
         # 获取API密钥状态
         glm_key = self.config_manager.get_api_key("glm")
-        deepseek_key = self.config_manager.get_api_key("deepseek")
+        siliconflow_key = self.config_manager.get_api_key("deepseek")
 
-        for i, (model, desc) in enumerate(models):
-            radio = QPushButton(f"{model}({desc})")
+        # 添加GLM模型按钮
+        for model, desc in glm_models:
+            radio = QPushButton(f"{model} - {desc}")
             radio.setCheckable(True)
             radio.setAutoExclusive(True)
-            radio.setStyleSheet(StyleManager.get_model_button_style())
+            radio.setFixedHeight(40)
+            radio.setStyleSheet("""
+                QPushButton {
+                    background-color: #f8f9fa;
+                    border: 1px solid #dee2e6;
+                    border-radius: 5px;
+                    padding: 8px 12px;
+                    text-align: left;
+                    font-size: 13px;
+                    color: #333;
+                }
+                QPushButton:hover {
+                    background-color: #e9ecef;
+                    border-color: #adb5bd;
+                }
+                QPushButton:checked {
+                    background-color: #4caf50;
+                    border-color: #4caf50;
+                    color: white;
+                }
+                QPushButton:disabled {
+                    background-color: #f8f9fa;
+                    color: #6c757d;
+                    border-color: #dee2e6;
+                }
+            """)
             
-            # 根据API密钥状态设置按钮是否可用
-            if i < 4:  # GLM模型
-                if not glm_key.strip():
-                    radio.setDisabled(True)
-            else:  # DeepSeek模型
-                if not deepseek_key.strip():
-                    radio.setDisabled(True)
+            if not glm_key.strip():
+                radio.setDisabled(True)
+                radio.setToolTip("请先设置GLM API Key")
                     
             self.model_buttons.append((radio, model))
             layout.addWidget(radio)
 
+        layout.addWidget(sf_title)
+
+        # 添加SiliconFlow模型按钮
+        for model, desc in sf_models:
+            radio = QPushButton(f"{model} - {desc}")
+            radio.setCheckable(True)
+            radio.setAutoExclusive(True)
+            radio.setFixedHeight(40)
+            radio.setStyleSheet("""
+                QPushButton {
+                    background-color: #f8f9fa;
+                    border: 1px solid #dee2e6;
+                    border-radius: 5px;
+                    padding: 8px 12px;
+                    text-align: left;
+                    font-size: 13px;
+                    color: #333;
+                }
+                QPushButton:hover {
+                    background-color: #e9ecef;
+                    border-color: #adb5bd;
+                }
+                QPushButton:checked {
+                    background-color: #4caf50;
+                    border-color: #4caf50;
+                    color: white;
+                }
+                QPushButton:disabled {
+                    background-color: #f8f9fa;
+                    color: #6c757d;
+                    border-color: #dee2e6;
+                }
+            """)
+            if not siliconflow_key.strip():
+                radio.setDisabled(True)
+                radio.setToolTip("请先设置SiliconFlow API Key")                    
+            self.model_buttons.append((radio, model))
+            layout.addWidget(radio)
+
+        # 底部按钮区域
+        button_layout = QHBoxLayout()
+        
+        # 设置API Key按钮
+        api_button = QPushButton("设置API Key")
+        api_button.setFixedSize(100, 35)
+        api_button.setStyleSheet("""
+            QPushButton {
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #5a6268;
+            }
+        """)
+        api_button.clicked.connect(self._open_api_dialog)
+        
         # 确认按钮
-        confirm_button = QPushButton("确认")
-        confirm_button.setStyleSheet(StyleManager.get_primary_button_style())
+        confirm_button = QPushButton("确认选择")
+        confirm_button.setFixedSize(100, 35)
+        confirm_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4caf50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
         confirm_button.clicked.connect(self.accept)
-        layout.addWidget(confirm_button, alignment=Qt.AlignmentFlag.AlignCenter)
+        
+        button_layout.addWidget(api_button)
+        button_layout.addStretch()
+        button_layout.addWidget(confirm_button)
+        
+        layout.addLayout(button_layout)    
+        
+    def _open_api_dialog(self):
+        """打开API Key设置对话框"""
+        dialog = APIKeyDialog(self.config_manager, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # 刷新按钮状态
+            self._refresh_button_states()
+
+    def _refresh_button_states(self):
+        """刷新按钮状态"""
+        glm_key = self.config_manager.get_api_key("glm")
+        siliconflow_key = self.config_manager.get_api_key("deepseek")
+        
+        for button, model in self.model_buttons:
+            if model.startswith("glm-"):
+                button.setEnabled(bool(glm_key.strip()))
+            else:
+                button.setEnabled(bool(siliconflow_key.strip()))
 
     def get_selected_model(self):
         """获取选择的模型"""
@@ -108,27 +256,26 @@ class APIKeyDialog(QDialog):
         save_button.setStyleSheet(StyleManager.get_primary_button_style())
         save_button.clicked.connect(self._save_keys)
         layout.addWidget(save_button, alignment=Qt.AlignmentFlag.AlignCenter)
-    
     def _load_existing_keys(self):
         """加载现有的API密钥"""
         glm_key = self.config_manager.get_api_key("glm")
         if glm_key:
             self.glm_api_key_input.setText(glm_key)
         
-        deepseek_key = self.config_manager.get_api_key("deepseek")
-        if deepseek_key:
-            self.deepseek_api_key_input.setText(deepseek_key)
-    
+        siliconflow_key = self.config_manager.get_api_key("deepseek")
+        if siliconflow_key:
+            self.deepseek_api_key_input.setText(siliconflow_key)
+
     def _save_keys(self):
         """保存API密钥"""
         glm_key = self.glm_api_key_input.toPlainText().strip()
-        deepseek_key = self.deepseek_api_key_input.toPlainText().strip()
+        siliconflow_key = self.deepseek_api_key_input.toPlainText().strip()
         
         # 验证API Keys格式
         glm_valid = self.config_manager.validate_api_key(glm_key, "glm-4")
-        deepseek_valid = self.config_manager.validate_api_key(deepseek_key, "deepseek-ai")
+        siliconflow_valid = self.config_manager.validate_api_key(siliconflow_key, "deepseek-ai")
         
-        if not glm_valid or not deepseek_valid:
+        if not glm_valid or not siliconflow_valid:
             # 显示错误提示
             from .widgets import ToastWidget
             ToastWidget("API格式错误", self).show()
@@ -136,7 +283,7 @@ class APIKeyDialog(QDialog):
         
         # 保存密钥
         self.config_manager.save_api_key("glm", glm_key)
-        self.config_manager.save_api_key("deepseek", deepseek_key)
+        self.config_manager.save_api_key("deepseek", siliconflow_key)
         
         # 显示成功提示
         from .widgets import ToastWidget
